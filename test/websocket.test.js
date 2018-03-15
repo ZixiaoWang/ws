@@ -5,6 +5,7 @@
 const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
+const { URL } = require('url');
 const http = require('http');
 const dns = require('dns');
 const fs = require('fs');
@@ -360,6 +361,13 @@ describe('WebSocket', function () {
         const ws = new WebSocket(url, { agent: new CustomAgent() });
 
         assert.strictEqual(ws.url, url);
+      });
+
+      it('accepts URL instances as url', function () {
+        const url = new URL('ws://localhost/foo');
+        const ws = new WebSocket(url, { agent: new CustomAgent() });
+
+        assert.strictEqual(ws.url, 'ws://localhost/foo');
       });
     });
   });
