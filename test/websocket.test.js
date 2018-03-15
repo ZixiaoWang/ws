@@ -5,7 +5,7 @@
 const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
-const { URL } = require('url');
+const URL = require('url').URL;
 const http = require('http');
 const dns = require('dns');
 const fs = require('fs');
@@ -363,12 +363,14 @@ describe('WebSocket', function () {
         assert.strictEqual(ws.url, url);
       });
 
-      it('accepts URL instances as url', function () {
-        const url = new URL('ws://localhost/foo');
-        const ws = new WebSocket(url, { agent: new CustomAgent() });
+      if (URL) {
+        it('accepts URL instances as url', function () {
+          const url = new URL('ws://localhost/foo');
+          const ws = new WebSocket(url, { agent: new CustomAgent() });
 
-        assert.strictEqual(ws.url, 'ws://localhost/foo');
-      });
+          assert.strictEqual(ws.url, 'ws://localhost/foo');
+        });
+      }
     });
   });
 
@@ -1789,7 +1791,7 @@ describe('WebSocket', function () {
   });
 
   describe('Request headers', function () {
-    it('adds the authorization header if userinfo is present', function (done) {
+    it('adds the authorization header if userinfo is present in address', function (done) {
       const agent = new CustomAgent();
       const auth = 'test:testpass';
 
@@ -1803,6 +1805,23 @@ describe('WebSocket', function () {
 
       const ws = new WebSocket(`ws://${auth}@localhost`, { agent });
     });
+
+    if (URL) {
+      it('adds the authorization header if userinfo is present in URL instance', function (done) {
+        const agent = new CustomAgent();
+        const auth = 'test:testpass';
+
+        agent.addRequest = (req) => {
+          assert.strictEqual(
+            req._headers.authorization,
+            `Basic ${Buffer.from(auth).toString('base64')}`
+          );
+          done();
+        };
+
+        const ws = new WebSocket(new URL(`ws://${auth}@localhost`), { agent });
+      });
+    }
 
     it('adds custom headers', function (done) {
       const agent = new CustomAgent();
